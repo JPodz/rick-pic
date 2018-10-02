@@ -1,23 +1,23 @@
-exports.handler = async (event, context) => {
-    const pics = [
-        'https://s3-us-west-2.amazonaws.com/rickpic/rick2.jpg',
-        'https://s3-us-west-2.amazonaws.com/rickpic/rick3.jpg',
-        'https://s3-us-west-2.amazonaws.com/rickpic/rick4.jpg',
-        'https://s3-us-west-2.amazonaws.com/rickpic/rick5.jpg',
-        'https://s3-us-west-2.amazonaws.com/rickpic/rick6.jpg'
-    ];
+const AWS = require('aws-sdk');
+const s3 = new AWS.S3();
 
-    const pic = pics[ Math.floor(Math.random() * pics.length) ];
+exports.handler = async (event, context) => {
+
+    const { Contents } = await s3.listObjects({ Bucket: 'rickpic' }).promise();
+
+    const images = Contents.filter(content => content.Key.includes('.jpg'));
+    const randomIndex = Math.floor(Math.random() * images.length);
+    const pic = images[ randomIndex ];
+    const url = `https://s3-us-west-2.amazonaws.com/rickpic/${pic.Key}`;
 
     return {
         statusCode: 200,
         body: JSON.stringify({
-            "text": '/rickpic',
             "response_type": "in_channel",
             "attachments": [
                 {
-                    "image_url": pic,
-                    "thumb_url": pic,
+                    "image_url": url,
+                    "thumb_url": url,
                     "ts": new Date().getTime()
                 }
             ]
